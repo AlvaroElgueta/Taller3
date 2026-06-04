@@ -31,6 +31,30 @@ public class SistemaMagia {
 		return hechizos;
 	}
 
+	// devuelve el top de hechizos
+	public ArrayList<Hechizo> getTopHechizos(int cantidad) {
+		ArrayList<Hechizo> copia = copiarHechizos();
+		ordenarHechizos(copia);
+
+		while (copia.size() > cantidad) {
+			copia.remove(copia.size() - 1);
+		}
+
+		return copia;
+	}
+
+	// devuelve el top de magos
+	public ArrayList<Mago> getTopMagos(int cantidad) {
+		ArrayList<Mago> copia = copiarMagos();
+		ordenarMagos(copia);
+
+		while (copia.size() > cantidad) {
+			copia.remove(copia.size() - 1);
+		}
+
+		return copia;
+	}
+
 	// busca un hechizo por nombre
 	public Hechizo buscarHechizo(String nombre) {
 		for (int i = 0; i < hechizos.size(); i++) {
@@ -95,5 +119,71 @@ public class SistemaMagia {
 		}
 
 		archivo.close();
+	}
+
+	// copia los hechizos
+	private ArrayList<Hechizo> copiarHechizos() {
+		ArrayList<Hechizo> copia = new ArrayList<Hechizo>();
+
+		for (int i = 0; i < hechizos.size(); i++) {
+			copia.add(hechizos.get(i));
+		}
+
+		return copia;
+	}
+
+	// copia los magos
+	private ArrayList<Mago> copiarMagos() {
+		ArrayList<Mago> copia = new ArrayList<Mago>();
+
+		for (int i = 0; i < magos.size(); i++) {
+			copia.add(magos.get(i));
+		}
+
+		return copia;
+	}
+
+	// ordena los hechizos por puntaje
+	private void ordenarHechizos(ArrayList<Hechizo> lista) {
+		for (int i = 0; i < lista.size(); i++) {
+			for (int j = i + 1; j < lista.size(); j++) {
+				boolean cambiar = false;
+
+				if (lista.get(j).calcularPuntaje() > lista.get(i).calcularPuntaje()) {
+					cambiar = true;
+				} else if (lista.get(j).calcularPuntaje() == lista.get(i).calcularPuntaje()
+						&& lista.get(j).getNombre().compareToIgnoreCase(lista.get(i).getNombre()) < 0) {
+					cambiar = true;
+				}
+
+				if (cambiar) {
+					Hechizo aux = lista.get(i);
+					lista.set(i, lista.get(j));
+					lista.set(j, aux);
+				}
+			}
+		}
+	}
+
+	// ordena los magos por puntaje
+	private void ordenarMagos(ArrayList<Mago> lista) {
+		for (int i = 0; i < lista.size(); i++) {
+			for (int j = i + 1; j < lista.size(); j++) {
+				boolean cambiar = false;
+
+				if (lista.get(j).calcularPuntaje() > lista.get(i).calcularPuntaje()) {
+					cambiar = true;
+				} else if (lista.get(j).calcularPuntaje() == lista.get(i).calcularPuntaje()
+						&& lista.get(j).getNombre().compareToIgnoreCase(lista.get(i).getNombre()) < 0) {
+					cambiar = true;
+				}
+
+				if (cambiar) {
+					Mago aux = lista.get(i);
+					lista.set(i, lista.get(j));
+					lista.set(j, aux);
+				}
+			}
+		}
 	}
 }
