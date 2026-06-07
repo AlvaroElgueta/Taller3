@@ -1,7 +1,10 @@
 package Taller3;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -55,6 +58,17 @@ public class SistemaMagia {
 		return copia;
 	}
 
+	// busca un mago por nombre
+	public Mago buscarMago(String nombre) {
+		for (int i = 0; i < magos.size(); i++) {
+			if (magos.get(i).getNombre().equalsIgnoreCase(nombre)) {
+				return magos.get(i);
+			}
+		}
+
+		return null;
+	}
+
 	// busca un hechizo por nombre
 	public Hechizo buscarHechizo(String nombre) {
 		for (int i = 0; i < hechizos.size(); i++) {
@@ -64,6 +78,101 @@ public class SistemaMagia {
 		}
 
 		return null;
+	}
+
+	// agrega un mago
+	public boolean agregarMago(String nombre, ArrayList<Hechizo> nuevosHechizos) {
+		if (buscarMago(nombre) != null || nuevosHechizos.size() == 0) {
+			return false;
+		}
+
+		Mago mago = new Mago(nombre);
+		mago.setHechizos(nuevosHechizos);
+		magos.add(mago);
+		return true;
+	}
+
+	// modifica un mago
+	public boolean modificarMago(String nombreActual, String nuevoNombre, ArrayList<Hechizo> nuevosHechizos) {
+		Mago mago = buscarMago(nombreActual);
+
+		if (mago == null || nuevosHechizos.size() == 0) {
+			return false;
+		}
+
+		Mago repetido = buscarMago(nuevoNombre);
+
+		if (repetido != null && repetido != mago) {
+			return false;
+		}
+
+		mago.setNombre(nuevoNombre);
+		mago.setHechizos(nuevosHechizos);
+		return true;
+	}
+
+	// elimina un mago
+	public boolean eliminarMago(String nombre) {
+		Mago mago = buscarMago(nombre);
+
+		if (mago == null) {
+			return false;
+		}
+
+		magos.remove(mago);
+		return true;
+	}
+
+	// agrega un hechizo
+	public boolean agregarHechizo(Hechizo hechizo) {
+		if (hechizo == null || buscarHechizo(hechizo.getNombre()) != null) {
+			return false;
+		}
+
+		hechizos.add(hechizo);
+		return true;
+	}
+
+	// modifica un hechizo
+	public boolean modificarHechizo(String nombreActual, Hechizo nuevoHechizo) {
+		Hechizo hechizoActual = buscarHechizo(nombreActual);
+
+		if (hechizoActual == null || nuevoHechizo == null) {
+			return false;
+		}
+
+		Hechizo repetido = buscarHechizo(nuevoHechizo.getNombre());
+
+		if (repetido != null && repetido != hechizoActual) {
+			return false;
+		}
+
+		int posicion = hechizos.indexOf(hechizoActual);
+		hechizos.set(posicion, nuevoHechizo);
+		reemplazarHechizoEnMagos(hechizoActual, nuevoHechizo);
+		return true;
+	}
+
+	// elimina un hechizo
+	public boolean eliminarHechizo(String nombre) {
+		Hechizo hechizo = buscarHechizo(nombre);
+
+		if (hechizo == null || !puedeEliminarHechizo(hechizo)) {
+			return false;
+		}
+
+		for (int i = 0; i < magos.size(); i++) {
+			magos.get(i).eliminarHechizo(hechizo);
+		}
+
+		hechizos.remove(hechizo);
+		return true;
+	}
+
+	// guarda todos los cambios
+	public void guardarDatos() throws IOException {
+		guardarHechizos();
+		guardarMagos();
 	}
 
 	// carga los hechizos
@@ -119,6 +228,35 @@ public class SistemaMagia {
 		}
 
 		archivo.close();
+	}
+
+	// reemplaza un hechizo en todos los magos
+	private void reemplazarHechizoEnMagos(Hechizo anterior, Hechizo nuevo) {
+		for (int i = 0; i < magos.size(); i++) {
+			ArrayList<Hechizo> nuevosHechizos = new ArrayList<Hechizo>();
+			ArrayList<Hechizo> hechizosActuales = magos.get(i).getHechizos();
+
+			for (int j = 0; j < hechizosActuales.size(); j++) {
+				if (hechizosActuales.get(j) == anterior) {
+					nuevosHechizos.add(nuevo);
+				} else {
+					nuevosHechizos.add(hechizosActuales.get(j));
+				}
+			}
+
+			magos.get(i).setHechizos(nuevosHechizos);
+		}
+	}
+
+	// revisa si se puede eliminar un hechizo
+	private boolean puedeEliminarHechizo(Hechizo hechizo) {
+		for (int i = 0; i < magos.size(); i++) {
+			if (magos.get(i).getHechizos().contains(hechizo) && magos.get(i).getHechizos().size() == 1) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	// copia los hechizos
@@ -185,5 +323,35 @@ public class SistemaMagia {
 				}
 			}
 		}
+	}
+
+	// guarda los hechizos
+	private void guardarHechizos() throws IOException {
+		BufferedWriter bw = new BufferedWriter(new FileWriter("Hechizos.txt"));
+
+		for (int i = 0; i < hechizos.size(); i++) {
+			bw.write(hechizos.get(i).toArchivo());
+
+			if (i < hechizos.size() - 1) {
+				bw.newLine();
+			}
+		}
+
+		bw.close();
+	}
+
+	// guarda los magos
+	private void guardarMagos() throws IOException {
+		BufferedWriter bw = new BufferedWriter(new FileWriter("Magos.txt"));
+
+		for (int i = 0; i < magos.size(); i++) {
+			bw.write(magos.get(i).toArchivo());
+
+			if (i < magos.size() - 1) {
+				bw.newLine();
+			}
+		}
+
+		bw.close();
 	}
 }
